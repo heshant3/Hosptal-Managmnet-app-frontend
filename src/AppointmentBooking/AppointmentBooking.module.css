@@ -1,0 +1,299 @@
+.bookingContainer {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: #1976d2;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.backButton:hover {
+  color: #1565c0;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1976d2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.bookingContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.doctorProfile {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+}
+
+.doctorHeader {
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.doctorAvatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e3f2fd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.doctorAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 50px;
+  height: 50px;
+  color: #1976d2;
+}
+
+.doctorDetails {
+  flex: 1;
+}
+
+.doctorName {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.doctorSpecialty {
+  color: #1976d2;
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.doctorMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.metaIcon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+.doctorBio {
+  color: #333;
+}
+
+.doctorBio h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.doctorBio p {
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.doctorCredentials {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.credentialItem {
+  margin-bottom: 8px;
+}
+
+.credentialItem:last-child {
+  margin-bottom: 0;
+}
+
+.bookingForm {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+}
+
+.bookingTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.formSection {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.sectionIcon {
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+.dateSelection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dateButton {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.dateButton:hover {
+  border-color: #90caf9;
+  background-color: #f5f9ff;
+}
+
+.dateSelected {
+  border-color: #1976d2;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.timeSelection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.timeButton {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.timeButton:hover {
+  border-color: #90caf9;
+  background-color: #f5f9ff;
+}
+
+.timeSelected {
+  border-color: #1976d2;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.reasonInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.3s;
+}
+
+.reasonInput:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 16px;
+}
+
+.submitButton:hover {
+  background-color: #1565c0;
+}
+
+.submitButton:disabled {
+  background-color: #90caf9;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .bookingContent {
+    grid-template-columns: 1fr;
+  }
+
+  .doctorHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .doctorAvatar {
+    margin: 0 auto 16px;
+  }
+
+  .doctorMeta {
+    justify-content: center;
+  }
+}

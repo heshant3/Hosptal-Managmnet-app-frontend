@@ -1,0 +1,301 @@
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 70px);
+  padding: 20px;
+}
+
+.loadingIcon {
+  width: 40px;
+  height: 40px;
+  color: #1976d2;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dashboardContainer {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboardHeader {
+  margin-bottom: 24px;
+}
+
+.dashboardTitle {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.dashboardSubtitle {
+  color: #666;
+  font-size: 16px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.statCardIcon {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.statCardTitle {
+  font-weight: 500;
+  color: #666;
+  font-size: 14px;
+}
+
+.statCardValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.actionsContainer {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.actionCard {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.actionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  background-color: #f0f7ff;
+}
+
+.actionIcon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  color: #1976d2;
+}
+
+.actionTitle {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.actionDesc {
+  font-size: 14px;
+  color: #666;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 32px 0 16px;
+  color: #333;
+}
+
+.tableContainer {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th {
+  text-align: left;
+  padding: 16px;
+  background-color: #f5f8fa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dataTable td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+.dataTable tr:hover {
+  background-color: #f9f9f9;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badgeGreen {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeBlue {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.badgeOrange {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.badgeRed {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.primaryButton {
+  background-color: #1976d2;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #1565c0;
+}
+
+.successButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.successButton:hover {
+  background-color: #43a047;
+}
+
+.dangerButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.dangerButton:hover {
+  background-color: #e53935;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  color: #90caf9;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.emptyDesc {
+  color: #666;
+  margin-bottom: 24px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Appointment Details Dialog Styles */
+.appointmentDetails {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.detailRow {
+  display: flex;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detailLabel {
+  flex: 0 0 35%;
+  font-weight: 600;
+  color: #555;
+}
+
+.detailValue {
+  flex: 0 0 65%;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

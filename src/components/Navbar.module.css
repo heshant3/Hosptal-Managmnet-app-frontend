@@ -1,0 +1,111 @@
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.logoIcon {
+  margin-right: 10px;
+}
+
+.logoText {
+  font-size: 1.5rem;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navLink {
+  color: #333;
+  font-weight: 500;
+  transition: color 0.3s;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.navLink:hover {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.05);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #f0f7ff;
+}
+
+.userIcon {
+  color: #1976d2;
+}
+
+.logoutButton {
+  background-color: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.logoutButton:hover {
+  background-color: #d32f2f;
+}
+
+.mobileMenuButton {
+  display: none;
+  cursor: pointer;
+  color: #1976d2;
+}
+
+@media (max-width: 768px) {
+  .mobileMenuButton {
+    display: block;
+  }
+
+  .navLinks {
+    position: absolute;
+    flex-direction: column;
+    background-color: white;
+    top: 70px;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    gap: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-150%);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: -1;
+  }
+
+  .mobileActive {
+    transform: translateY(0);
+    opacity: 1;
+    z-index: 999;
+  }
+}
