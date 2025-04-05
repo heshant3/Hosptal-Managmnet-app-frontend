@@ -23,7 +23,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="patient" element={<Dashboard />} />
         <Route
-          path="/appointment-booking/:doctorId"
+          path="/appointment-booking/:doctorId" // Route with doctorId as a parameter
           element={<AppointmentBooking />}
         />
 

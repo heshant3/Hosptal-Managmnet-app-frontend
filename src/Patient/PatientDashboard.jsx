@@ -115,7 +115,7 @@ const PatientDashboard = () => {
       </div>
 
       <div className={styles.actionsContainer}>
-        <Link to="/doctor-search" className={styles.actionCard}>
+        <Link to="/" className={styles.actionCard}>
           <Users className={styles.actionIcon} />
           <h3 className={styles.actionTitle}>Find a Doctor</h3>
           <p className={styles.actionDesc}>Search for doctors by specialty</p>
@@ -187,10 +187,7 @@ const PatientDashboard = () => {
             You don't have any upcoming appointments. Schedule your first
             appointment now.
           </p>
-          <Link
-            to="/doctor-search"
-            className={`${styles.button} ${styles.primaryButton}`}
-          >
+          <Link to="/" className={`${styles.button} ${styles.primaryButton}`}>
             Find a Doctor
           </Link>
         </div>

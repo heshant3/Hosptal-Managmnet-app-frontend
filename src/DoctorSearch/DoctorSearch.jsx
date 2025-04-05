@@ -1,53 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "./DoctorSearch.module.css";
 import { Search, Filter, MapPin, Star, User } from "lucide-react";
+import { gql, useQuery } from "@apollo/client";
+
+const GET_ALL_DOCTORS = gql`
+  query GetAllDoctors {
+    getAllDoctors {
+      doctor_id
+      name
+      specialization
+      qualifications
+    }
+  }
+`;
 
 const DoctorSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [specialty, setSpecialty] = useState("");
-  const [doctors] = useState([
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiologist",
-      location: "New York, NY",
-      rating: 4.8,
-      reviews: 124,
-      image: null,
-      availableDates: ["2025-04-10", "2025-04-12", "2025-04-15"],
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Patel",
-      specialty: "Dermatologist",
-      location: "Boston, MA",
-      rating: 4.6,
-      reviews: 98,
-      image: null,
-      availableDates: ["2025-04-09", "2025-04-11", "2025-04-14"],
-    },
-    {
-      id: 3,
-      name: "Dr. Emma Wilson",
-      specialty: "Neurologist",
-      location: "Chicago, IL",
-      rating: 4.9,
-      reviews: 156,
-      image: null,
-      availableDates: ["2025-04-08", "2025-04-10", "2025-04-13"],
-    },
-    {
-      id: 4,
-      name: "Dr. James Rodriguez",
-      specialty: "Orthopedic Surgeon",
-      location: "Miami, FL",
-      rating: 4.7,
-      reviews: 112,
-      image: null,
-      availableDates: ["2025-04-09", "2025-04-12", "2025-04-16"],
-    },
-  ]);
+  const [doctors, setDoctors] = useState([]);
+  const { data, loading, error } = useQuery(GET_ALL_DOCTORS);
+
+  useEffect(() => {
+    if (data && data.getAllDoctors) {
+      setDoctors(
+        data.getAllDoctors.map((doctor) => ({
+          id: doctor.doctor_id, // Use doctor_id as the unique identifier
+          name: doctor.name,
+          specialty: doctor.specialization,
+          qualifications: doctor.qualifications,
+          location: "Unknown",
+          rating: 4.5,
+          reviews: 0,
+          image: null,
+          availableDates: [],
+        }))
+      );
+    }
+  }, [data]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error loading doctors.</p>;
 
   const specialties = [
     "All Specialties",
@@ -62,8 +55,6 @@ const DoctorSearch = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // In a real app, you would fetch filtered results from the server
-    console.log("Searching for:", searchTerm, specialty);
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
@@ -145,11 +136,6 @@ const DoctorSearch = () => {
                 <p className={styles.doctorSpecialty}>{doctor.specialty}</p>
 
                 <div className={styles.doctorMeta}>
-                  <div className={styles.doctorLocation}>
-                    <MapPin className={styles.metaIcon} />
-                    <span>{doctor.location}</span>
-                  </div>
-
                   <div className={styles.doctorRating}>
                     <Star className={styles.metaIcon} />
                     <span>
@@ -158,13 +144,9 @@ const DoctorSearch = () => {
                   </div>
                 </div>
 
-                <div className={styles.availabilityText}>
-                  Next available:{" "}
-                  {new Date(doctor.availableDates[0]).toLocaleDateString()}
-                </div>
-
                 <Link
                   to={`/appointment-booking/${doctor.id}`}
+                  state={{ doctor }} // Pass doctor data as state
                   className={styles.bookButton}
                 >
                   Book Appointment

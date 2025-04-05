@@ -233,6 +233,28 @@
   background-color: #1565c0;
 }
 
+.scheduleInfo {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.scheduleInfo h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.scheduleInfo ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scheduleInfo li {
+  margin-bottom: 4px;
+}
+
 @media (max-width: 768px) {
   .doctorsList {
     grid-template-columns: 1fr;

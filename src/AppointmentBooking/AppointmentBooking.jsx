@@ -1,103 +1,69 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { gql, useQuery } from "@apollo/client";
 import styles from "./AppointmentBooking.module.css";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  ArrowLeft,
-  User,
-  Star,
-  MapPin,
-} from "lucide-react";
+import { Calendar, Clock, FileText, ArrowLeft, User } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const GET_DOCTOR_DETAILS_BY_ID = gql`
+  query GetDoctorInfo($doctor_id: Int!) {
+    getDoctorBasicInfoById(doctor_id: $doctor_id) {
+      doctor_id
+      name
+      specialization
+      qualifications
+    }
+  }
+`;
+
+const GET_DOCTOR_DETAILS_BY_ID_FULL = gql`
+  query GetDocScheduleByDoctorId($doctor_id: Int!) {
+    getDocScheduleByDoctorId(doctor_id: $doctor_id) {
+      id
+      doctor_id
+      hospital_name
+      total_patients
+      day
+      time
+      onePatientDuration
+      YourTime
+    }
+  }
+`;
 
 const AppointmentBooking = () => {
   const { doctorId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [doctor, setDoctor] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
-  const [availableDates, setAvailableDates] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
+  const [selectedHospital, setSelectedHospital] = useState(null);
 
-  useEffect(() => {
-    // Mock fetching doctor data
-    setTimeout(() => {
-      // This would be a real API call in a production app
-      const mockDoctor = {
-        id: parseInt(doctorId),
-        name: "Dr. Sarah Johnson",
-        specialty: "Cardiologist",
-        location: "New York, NY",
-        rating: 4.8,
-        reviews: 124,
-        image: null,
-        bio: "Dr. Sarah Johnson is a board-certified cardiologist with over 15 years of experience in treating heart conditions. She specializes in preventive cardiology and heart disease management.",
-        education: "Harvard Medical School",
-        languages: ["English", "Spanish"],
-        availableDates: [
-          "2025-04-10",
-          "2025-04-12",
-          "2025-04-15",
-          "2025-04-18",
-        ],
-      };
+  const passedDoctorData = location.state?.doctor;
 
-      setDoctor(mockDoctor);
-      setAvailableDates(mockDoctor.availableDates);
-      setLoading(false);
-    }, 1000);
-  }, [doctorId]);
+  const { data, loading, error } = useQuery(GET_DOCTOR_DETAILS_BY_ID, {
+    variables: { doctor_id: parseInt(doctorId) },
+    skip: !!passedDoctorData,
+  });
 
-  useEffect(() => {
-    if (selectedDate) {
-      // Mock available time slots for the selected date
-      const mockTimes = [
-        "9:00 AM",
-        "9:30 AM",
-        "10:00 AM",
-        "10:30 AM",
-        "11:00 AM",
-        "2:00 PM",
-        "2:30 PM",
-        "3:00 PM",
-        "3:30 PM",
-      ];
-      setAvailableTimes(mockTimes);
-    } else {
-      setAvailableTimes([]);
-    }
-  }, [selectedDate]);
+  const {
+    data: fullData,
+    loading: fullLoading,
+    error: fullError,
+  } = useQuery(GET_DOCTOR_DETAILS_BY_ID_FULL, {
+    variables: { doctor_id: parseInt(doctorId) },
+    skip: false,
+  });
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setSelectedTime(""); // Reset time when date changes
-  };
+  console.log("Full Data Response:", fullData);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const doctorDetails =
+    fullData?.getDocScheduleByDoctorId?.[0] || data?.getDoctorBasicInfoById;
+  const doctor = passedDoctorData || doctorDetails;
 
-    if (!selectedDate || !selectedTime) {
-      alert("Please select both date and time");
-      return;
-    }
-
-    // In a real app, this would send the appointment data to the server
-    console.log("Booking appointment with:", {
-      doctorId,
-      date: selectedDate,
-      time: selectedTime,
-      reason,
-    });
-
-    // Navigate back to patient dashboard after booking
-    alert("Appointment requested. Waiting for doctor approval.");
-    navigate("/patient");
-  };
-
-  if (loading) {
+  if ((loading || fullLoading) && !passedDoctorData) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
@@ -105,6 +71,64 @@ const AppointmentBooking = () => {
       </div>
     );
   }
+
+  if (error || fullError) {
+    return <p>Error loading doctor details.</p>;
+  }
+
+  if (!doctor) {
+    return <p>No doctor data available.</p>;
+  }
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setSelectedTime("");
+  };
+
+  const handleHospitalSelect = (hospital) => {
+    setSelectedHospital(hospital);
+    setSelectedDate(""); // Reset selected date when hospital changes
+    setSelectedTime(""); // Reset selected time when hospital changes
+  };
+
+  const handleTimeSelect = (time) => {
+    setSelectedTime(time);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedDate || !selectedTime) {
+      alert("Please select both date and time");
+      return;
+    }
+    console.log("Booking appointment with:", {
+      doctorId,
+      date: selectedDate,
+      time: selectedTime,
+      reason,
+    });
+    alert("Appointment requested. Waiting for doctor approval.");
+    navigate("/patient");
+  };
+
+  const getDayIndex = (day) => {
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days.indexOf(day);
+  };
+
+  const isDateSelectable = (date) => {
+    if (!selectedHospital) return false;
+    const hospitalDayIndex = getDayIndex(selectedHospital.day);
+    return date.getDay() === hospitalDayIndex;
+  };
 
   return (
     <div className={styles.bookingContainer}>
@@ -126,94 +150,119 @@ const AppointmentBooking = () => {
 
             <div className={styles.doctorDetails}>
               <h2 className={styles.doctorName}>{doctor.name}</h2>
-              <p className={styles.doctorSpecialty}>{doctor.specialty}</p>
-
-              <div className={styles.doctorMeta}>
-                <div className={styles.metaItem}>
-                  <MapPin className={styles.metaIcon} />
-                  <span>{doctor.location}</span>
-                </div>
-
-                <div className={styles.metaItem}>
-                  <Star className={styles.metaIcon} />
-                  <span>
-                    {doctor.rating} ({doctor.reviews} reviews)
-                  </span>
-                </div>
-              </div>
+              <p className={styles.doctorSpecialty}>
+                {doctor.specialization || doctor.specialty}
+              </p>
+              <p className={styles.doctorQualifications}>
+                {doctor.qualifications}
+              </p>
             </div>
           </div>
-
-          <div className={styles.doctorBio}>
-            <h3>About Doctor</h3>
-            <p>{doctor.bio}</p>
-
-            <div className={styles.doctorCredentials}>
-              <div className={styles.credentialItem}>
-                <strong>Education:</strong> {doctor.education}
-              </div>
-              <div className={styles.credentialItem}>
-                <strong>Languages:</strong> {doctor.languages.join(", ")}
-              </div>
+          <div className={styles.doctorDetails}>
+            <h2 className={styles.doctorName}>Select Hospital</h2>
+            <div className={styles.hospitalCards}>
+              {fullData?.getDocScheduleByDoctorId?.map((hospital) => (
+                <div
+                  key={hospital.id}
+                  className={`${styles.hospitalCard} ${
+                    selectedHospital?.id === hospital.id ? styles.selected : ""
+                  }`}
+                  onClick={() => handleHospitalSelect(hospital)}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <p className={styles.hospitalName}>
+                      {hospital.hospital_name}
+                    </p>
+                    <p className={styles.hospitalDay}>{hospital.day}</p>
+                  </div>
+                  {/* <p>Total Patients: {hospital.total_patients}</p> */}
+                  {/* <p>Available Day: {hospital.day}</p>
+                  <p>Available Time: {hospital.time}</p>
+                  <p>
+                    Duration per Patient: {hospital.onePatientDuration} mins
+                  </p> */}
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         <div className={styles.bookingForm}>
           <h2 className={styles.bookingTitle}>Book an Appointment</h2>
-
           <form onSubmit={handleSubmit}>
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
                 <Calendar className={styles.sectionIcon} />
-                Select Date
+                Available Day
               </h3>
-
-              <div className={styles.dateSelection}>
-                {availableDates.map((date) => (
-                  <button
-                    key={date}
-                    type="button"
-                    className={`${styles.dateButton} ${
-                      selectedDate === date ? styles.dateSelected : ""
-                    }`}
-                    onClick={() => handleDateSelect(date)}
-                  >
-                    {new Date(date).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </button>
-                ))}
-              </div>
+              <DatePicker
+                selected={selectedDate}
+                onChange={handleDateSelect}
+                className={styles.input}
+                placeholderText="Select a date"
+                minDate={new Date()} // Restrict to today or future dates
+                filterDate={isDateSelectable} // Allow only dates matching the hospital's available day
+                disabled={!selectedHospital} // Disable if no hospital is selected
+              />
             </div>
 
-            {selectedDate && (
-              <div className={styles.formSection}>
-                <h3 className={styles.sectionTitle}>
-                  <Clock className={styles.sectionIcon} />
-                  Select Time
-                </h3>
-
-                <div className={styles.timeSelection}>
-                  {availableTimes.map((time) => (
-                    <button
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>
+                <Clock className={styles.sectionIcon} />
+                Session Start Time
+              </h3>
+              {selectedHospital ? (
+                <div className={styles.timeSlots}>
+                  {selectedHospital.time.split(",").map((time) => (
+                    <span
                       key={time}
-                      type="button"
-                      className={`${styles.timeButton} ${
-                        selectedTime === time ? styles.timeSelected : ""
+                      className={`${styles.timeSlot} ${
+                        selectedTime === time ? styles.selected : ""
                       }`}
-                      onClick={() => setSelectedTime(time)}
                     >
                       {time}
-                    </button>
+                    </span>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p>Please select a hospital to view available times.</p>
+              )}
+            </div>
 
             <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>
+                <Clock className={styles.sectionIcon} />
+                Your Start Time
+              </h3>
+              {selectedHospital ? (
+                <p>
+                  {selectedHospital.YourTime ||
+                    "No specific start time provided."}
+                </p>
+              ) : (
+                <p>Please select a hospital to view your start time.</p>
+              )}
+            </div>
+
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>
+                <Clock className={styles.sectionIcon} />
+                Available Appointments
+              </h3>
+              {selectedHospital ? (
+                <p>{selectedHospital.total_patients}</p>
+              ) : (
+                <p>Please select a hospital to view total appointments.</p>
+              )}
+            </div>
+
+            <div className={styles.formSection2}>
               <h3 className={styles.sectionTitle}>
                 <FileText className={styles.sectionIcon} />
                 Reason for Visit
@@ -227,11 +276,29 @@ const AppointmentBooking = () => {
                 rows={4}
               ></textarea>
             </div>
+            <div className={styles.formSection2}>
+              <h3 className={styles.sectionTitle}>
+                <FileText className={styles.sectionIcon} />
+                Add Medical Records
+              </h3>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    console.log("Uploaded file:", file);
+                    alert(`File "${file.name}" uploaded successfully.`);
+                  }
+                }}
+                className={styles.uploadInput}
+              />
+            </div>
 
             <button
               type="submit"
-              className={styles.submitButton}
-              disabled={!selectedDate || !selectedTime}
+              className={styles.bookedButton}
+              disabled={!selectedDate}
             >
               Request Appointment
             </button>
