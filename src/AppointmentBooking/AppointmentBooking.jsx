@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import styles from "./AppointmentBooking.module.css";
 import { Calendar, Clock, FileText, ArrowLeft, User } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabaseConfig";
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const GET_DOCTOR_DETAILS_BY_ID = gql`
   query GetDoctorInfo($doctor_id: Int!) {
@@ -28,6 +33,7 @@ const GET_DOCTOR_DETAILS_BY_ID_FULL = gql`
       time
       onePatientDuration
       YourTime
+      price
     }
   }
 `;
@@ -60,6 +66,8 @@ const ADD_APPOINTMENT = gql`
         session_time
         schedule_id
         yourTime
+        image_url
+        price
       }
       message
     }
@@ -74,6 +82,8 @@ const AppointmentBooking = () => {
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
   const [selectedHospital, setSelectedHospital] = useState(null);
+  const [imageUrl, setImageUrl] = useState(""); // Add state for image URL
+  const fileInputRef = useRef(null); // Add a ref for the file input
 
   const passedDoctorData = location.state?.doctor;
 
@@ -141,6 +151,40 @@ const AppointmentBooking = () => {
     setSelectedTime(time);
   };
 
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+
+    try {
+      const fileName = `${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("image") // Bucket name
+        .upload(fileName, file);
+
+      if (error) {
+        console.error("Error uploading file:", error);
+        alert("Failed to upload file. Please try again.");
+        return;
+      }
+
+      // Ensure the public URL is generated correctly
+      const { data: publicUrlData } = supabase.storage
+        .from("image")
+        .getPublicUrl(data.path);
+
+      if (publicUrlData) {
+        console.log("Uploaded File URL:", publicUrlData.publicUrl);
+        setImageUrl(publicUrlData.publicUrl); // Store the public URL in state
+        alert(`File uploaded successfully. URL: ${publicUrlData.publicUrl}`);
+      } else {
+        console.error("Failed to generate public URL.");
+        alert("File uploaded, but public URL could not be generated.");
+      }
+    } catch (err) {
+      console.error("Unexpected error during file upload:", err);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -152,6 +196,42 @@ const AppointmentBooking = () => {
     if (!selectedHospital) {
       alert("Please select a hospital first.");
       return;
+    }
+
+    let finalImageUrl = imageUrl; // Use the existing image URL if already uploaded
+
+    // Wait for image upload if not already uploaded
+    if (!finalImageUrl && fileInputRef.current?.files[0]) {
+      const file = fileInputRef.current.files[0];
+      try {
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from("image") // Bucket name
+          .upload(fileName, file);
+
+        if (error) {
+          console.error("Error uploading file:", error);
+          alert("Failed to upload file. Please try again.");
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("image")
+          .getPublicUrl(data.path);
+
+        if (publicUrlData) {
+          finalImageUrl = publicUrlData.publicUrl; // Set the final image URL
+          console.log("Uploaded File URL:", finalImageUrl);
+        } else {
+          console.error("Failed to generate public URL.");
+          alert("File uploaded, but public URL could not be generated.");
+          return;
+        }
+      } catch (err) {
+        console.error("Unexpected error during file upload:", err);
+        alert("An unexpected error occurred. Please try again.");
+        return;
+      }
     }
 
     const adjustedDate = selectedDate
@@ -175,6 +255,8 @@ const AppointmentBooking = () => {
       patient_dob: patientData?.getPatientDataById?.dob || "",
       patient_phone: patientData?.getPatientDataById?.mobile_number || "",
       yourTime: selectedHospital.YourTime || "",
+      price: selectedHospital.price || 0,
+      image_url: finalImageUrl || "", // Include the uploaded image URL
     };
 
     console.log("Appointment Data Sent to Server:", appointmentData);
@@ -197,6 +279,18 @@ const AppointmentBooking = () => {
       alert(
         data.addAppointment.message || "Appointment requested successfully."
       );
+
+      // Reset all state variables
+      setSelectedDate("");
+      setSelectedTime("");
+      setReason("");
+      setSelectedHospital(null);
+      setImageUrl("");
+
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       console.error("Error adding appointment:", error);
       if (error.networkError) {
@@ -330,21 +424,6 @@ const AppointmentBooking = () => {
               )}
             </div>
 
-            {/* <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>
-                <Clock className={styles.sectionIcon} />
-                Your Start Time
-              </h3>
-              {selectedHospital ? (
-                <p>
-                  {selectedHospital.YourTime ||
-                    "No specific start time provided."}
-                </p>
-              ) : (
-                <p>Please select a hospital to view your start time.</p>
-              )}
-            </div> */}
-
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
                 <Clock className={styles.sectionIcon} />
@@ -354,6 +433,18 @@ const AppointmentBooking = () => {
                 <p>{selectedHospital.total_patients}</p>
               ) : (
                 <p>Please select a hospital to view total appointments.</p>
+              )}
+            </div>
+
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>
+                <Clock className={styles.Price} />
+                Price
+              </h3>
+              {selectedHospital ? (
+                <p>{selectedHospital.price}</p>
+              ) : (
+                <p>Please select a hospital to view the price.</p>
               )}
             </div>
 
@@ -379,11 +470,10 @@ const AppointmentBooking = () => {
               <input
                 type="file"
                 accept="image/*"
+                ref={fileInputRef} // Attach the ref to the file input
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  if (file) {
-                    alert(`File "${file.name}" uploaded successfully.`);
-                  }
+                  handleFileUpload(file); // Call the upload function
                 }}
                 className={styles.uploadInput}
               />
@@ -392,7 +482,7 @@ const AppointmentBooking = () => {
             <button
               type="submit"
               className={styles.bookedButton}
-              disabled={!selectedDate}
+              disabled={!selectedDate || loading || fullLoading} // Disable if loading or no date selected
             >
               Request Appointment
             </button>

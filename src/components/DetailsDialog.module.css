@@ -9,6 +9,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .dialogContent {
@@ -18,36 +19,54 @@
   width: 90%;
   max-width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: scale(0.9);
+  animation: scaleUp 0.3s ease-in-out;
 }
 
 .dialogHeader {
   margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
 }
 
 .dialogTitle {
   margin: 0;
   font-size: 1.5rem;
   font-weight: bold;
+  color: #333;
 }
 
 .dialogDescription {
   margin: 0;
   font-size: 1rem;
   color: #666;
+  font-style: italic;
 }
 
 .dialogBody {
   margin-bottom: 20px;
+  padding: 10px 0;
 }
 
 .detailsList {
   list-style: none;
   padding: 0;
   margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #f9f9f9;
 }
 
 .detailItem {
   margin-bottom: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detailItem:last-child {
+  border-bottom: none;
 }
 
 .dialogFooter {
@@ -61,8 +80,51 @@
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .closeButton:hover {
   background: #1565c0;
+  transform: translateY(-2px);
+}
+
+.button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.imageButton {
+  background-color: #1976d2; /* Blue */
+  color: white;
+  transition: background-color 0.3s ease;
+  margin-top: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.imageButton:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1);
+  }
 }

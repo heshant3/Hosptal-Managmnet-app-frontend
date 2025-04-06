@@ -236,6 +236,30 @@
   background-color: #e53935;
 }
 
+.viewButton {
+  background-color: #4caf50; /* Green */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.viewButton:hover {
+  background-color: #45a049;
+}
+
+.cancelButton {
+  background-color: #f44336; /* Red */
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #d32f2f;
+}
+
 .emptyState {
   text-align: center;
   padding: 40px 20px;

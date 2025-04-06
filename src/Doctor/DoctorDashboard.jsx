@@ -17,6 +17,8 @@ const GET_APPOINTMENTS_BY_DOCTOR_ID = gql`
       image_url
       reason
       yourTime
+      price
+      status
     }
   }
 `;
@@ -138,7 +140,7 @@ const DoctorDashboard = () => {
           <div className={styles.statCardValue}>{appointments.length}</div>
         </div>
 
-        <div className={styles.statCard}>
+        {/* <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <Clock
               className={styles.statCardIcon}
@@ -149,7 +151,7 @@ const DoctorDashboard = () => {
           <div className={styles.statCardValue}>
             {appointments.filter((app) => app.status === "pending").length}
           </div>
-        </div>
+        </div> */}
 
         {/* <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
@@ -194,7 +196,7 @@ const DoctorDashboard = () => {
                 <th>Date</th>
                 <th>Time</th>
                 <th>patient Time</th>
-                <th>Status</th>
+
                 <th>Actions</th>
               </tr>
             </thead>
@@ -212,7 +214,7 @@ const DoctorDashboard = () => {
                   </td>
                   <td>{appointment.session_time}</td>
                   <td>{appointment.yourTime}</td>
-                  <td>{getStatusBadge("pending")}</td>
+
                   <td>
                     <button
                       className={`${styles.button} ${styles.primaryButton}`}
@@ -251,6 +253,14 @@ const DoctorDashboard = () => {
             { label: "Time", value: selectedAppointment.session_time },
             { label: "Patient Time", value: selectedAppointment.yourTime },
             { label: "Reason", value: selectedAppointment.reason },
+
+            { label: "Price", value: selectedAppointment.price },
+            { label: "Status", value: selectedAppointment.status },
+            {
+              label: "Appointment No.",
+              value: selectedAppointment.appointment_number,
+            },
+            { label: "Image", value: selectedAppointment.image_url },
           ]}
         />
       )}

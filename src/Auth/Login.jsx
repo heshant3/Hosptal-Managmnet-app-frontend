@@ -22,6 +22,15 @@ const LOGIN_DOCTOR_MUTATION = gql`
   }
 `;
 
+const LOGIN_ADMIN_MUTATION = gql`
+  mutation AdminLogin($email: String!, $password: String!) {
+    AdminLogin(email: $email, password: $password) {
+      message
+      adminId
+    }
+  }
+`;
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +42,8 @@ const Login = () => {
   const [loginDoctor, { error: gqlDoctorError }] = useMutation(
     LOGIN_DOCTOR_MUTATION
   );
+  const [loginAdmin, { error: gqlAdminError }] =
+    useMutation(LOGIN_ADMIN_MUTATION);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,17 +61,23 @@ const Login = () => {
         } else {
           setError(response.data.LoginDoctor.message);
         }
+      } else if (role === "admin") {
+        const response = await loginAdmin({ variables: { email, password } });
+        setLoading(false);
+
+        if (response.data.AdminLogin.adminId) {
+          localStorage.setItem("adminId", response.data.AdminLogin.adminId); // Save adminId to local storage
+          navigate("/admin");
+        } else {
+          setError(response.data.AdminLogin.message);
+        }
       } else {
         const response = await login({ variables: { email, password } });
         setLoading(false);
 
         if (response.data.Login.patientId) {
           localStorage.setItem("patientId", response.data.Login.patientId); // Save patientId to local storage
-          if (role === "admin") {
-            navigate("/admin");
-          } else {
-            navigate("/patient");
-          }
+          navigate("/patient");
         } else {
           setError(response.data.Login.message);
         }
@@ -87,6 +104,9 @@ const Login = () => {
           )}
           {gqlDoctorError && (
             <div className={styles.errorMessage}>{gqlDoctorError.message}</div>
+          )}
+          {gqlAdminError && (
+            <div className={styles.errorMessage}>{gqlAdminError.message}</div>
           )}
 
           <div className={styles.formGroup}>

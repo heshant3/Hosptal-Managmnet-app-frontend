@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import styles from "../components/Dashboard.module.css";
 import { Calendar, Users, Clock, Stethoscope, User } from "lucide-react";
 import DetailsDialog from "../components/DetailsDialog";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, gql, useMutation } from "@apollo/client";
 import Chat from "../AIChat/Chat"; // Import AIChat component
 
 const GET_APPOINTMENTS_BY_PATIENT_ID = gql`
@@ -18,6 +18,21 @@ const GET_APPOINTMENTS_BY_PATIENT_ID = gql`
       yourTime
       doc_specialist
       appointment_number
+      image_url
+      price
+      status
+    }
+  }
+`;
+
+const CANCEL_APPOINTMENT = gql`
+  mutation CancelAppointment($appointmentId: Int!) {
+    cancelAppointmentById(appointment_id: $appointmentId) {
+      appointment {
+        id
+        status
+      }
+      message
     }
   }
 `;
@@ -38,6 +53,33 @@ const PatientDashboard = () => {
     }
   );
 
+  const [cancelAppointment] = useMutation(CANCEL_APPOINTMENT); // Add this line
+
+  const handleCancelAppointment = async (appoint_id) => {
+    const apoiID = parseInt(appoint_id, 10); // Convert appoint_id to an integer
+    console.log("C:", apoiID); // Log the ID
+    try {
+      const { data } = await cancelAppointment({
+        variables: { appointmentId: apoiID }, // Use apoiID
+      });
+
+      const appointment = data?.cancelAppointmentById?.appointment;
+      if (appointment && appointment.status === "Cancelled") {
+        alert("Appointment cancelled successfully.");
+        refetch(); // Refresh the appointments list
+      } else {
+        console.error("Unexpected response:", data);
+        alert("Failed to cancel the appointment. Please try again.");
+      }
+    } catch (error) {
+      console.error(
+        `Error cancelling appointment with ID ${appoint_id}:`,
+        error
+      ); // Log the ID with the error
+      alert(`Failed to cancel the appointment. Error: ${error.message}`);
+    }
+  };
+
   useEffect(() => {
     if (patientId) {
       refetch(); // Refetch data when the page loads
@@ -55,24 +97,26 @@ const PatientDashboard = () => {
           time: appointment.yourTime,
           duration: "30 mins", // Placeholder duration
           location: appointment.hospital_name, // Placeholder location
-          status: appointment.appointment_number, // Use appointment_number for status
+          status: appointment.status, // Use appointment_number for status
           notes: appointment.reason,
           appointment_number: appointment.appointment_number,
+          image: appointment.image_url,
+          price: appointment.price, // Include price in the state
         })
       );
+
       setAppointments(fetchedAppointments);
     }
   }, [data]);
 
   const handleViewAppointment = (appointment) => {
-    console.log("Appointment ID:", appointment.id); // Log the appointment ID
     setSelectedAppointment(appointment);
     setIsDialogOpen(true);
   };
 
   const getAppointmentDetails = (appointment) => {
     return [
-      { label: "Appointment ID", value: appointment.id }, // New field for Appointment ID
+      { label: "Appointment ID", value: appointment.id },
       { label: "Doctor", value: appointment.doctorName },
       { label: "Specialty", value: appointment.specialty },
       { label: "Date", value: new Date(appointment.date).toLocaleDateString() },
@@ -81,6 +125,9 @@ const PatientDashboard = () => {
       { label: "Location", value: appointment.location },
       { label: "Notes", value: appointment.notes },
       { label: "Appointment Number", value: appointment.appointment_number },
+      { label: "Status", value: appointment.status },
+      { label: "Price", value: `Rs.${appointment.price}` }, // Format price
+      { label: "Image", value: appointment.image }, // Add image URL
     ];
   };
 
@@ -177,7 +224,7 @@ const PatientDashboard = () => {
                 <th>Specialty</th>
                 <th>Date</th>
                 <th>Time</th>
-                <th>Ap.No.</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -193,12 +240,17 @@ const PatientDashboard = () => {
                     <button
                       variant="default"
                       onClick={() => handleViewAppointment(appointment)}
-                      className="mr-2"
+                      className={`${styles.button} ${styles.viewButton}`} // Add CSS class
                     >
                       View Details
                     </button>
                     {appointment.status === "pending" && (
-                      <b variant="destructive">Cancel</b>
+                      <button
+                        className={`${styles.button} ${styles.cancelButton}`}
+                        onClick={() => handleCancelAppointment(appointment.id)} // Pass appointment ID
+                      >
+                        Cancel
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -227,6 +279,7 @@ const PatientDashboard = () => {
           title="Appointment Details"
           description="Complete information about your appointment"
           details={getAppointmentDetails(selectedAppointment)}
+          onCancel={handleCancelAppointment} // Pass the cancel handler
         />
       )}
     </div>

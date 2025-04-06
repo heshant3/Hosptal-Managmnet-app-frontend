@@ -11,6 +11,7 @@ const ADD_DOC_SCHEDULE = gql`
     $day: String!
     $time: String!
     $onePatientDuration: Int!
+    $price: Int!
   ) {
     addDocSchedule(
       doctor_id: $doctor_id
@@ -19,6 +20,7 @@ const ADD_DOC_SCHEDULE = gql`
       day: $day
       time: $time
       onePatientDuration: $onePatientDuration
+      price: $price
     ) {
       schedule {
         id
@@ -28,6 +30,7 @@ const ADD_DOC_SCHEDULE = gql`
         day
         time
         onePatientDuration
+        price
       }
       message
     }
@@ -44,6 +47,7 @@ const GET_DOC_SCHEDULE_BY_DOCTOR_ID = gql`
       day
       time
       onePatientDuration
+      price
     }
   }
 `;
@@ -65,6 +69,7 @@ const AvailabilityScheduler = () => {
   const [totalPatients, setTotalPatients] = useState("");
   const [day, setDay] = useState("");
   const [onePatientDuration, setOnePatientDuration] = useState(""); // New state for one patient duration
+  const [price, setPrice] = useState(""); // New state for price
   const [error, setError] = useState("");
   const [submittedDataList, setSubmittedDataList] = useState([]); // State to store multiple entries
   const [addDocSchedule] = useMutation(ADD_DOC_SCHEDULE); // Use mutation
@@ -94,7 +99,8 @@ const AvailabilityScheduler = () => {
       !hospitalName ||
       !totalPatients ||
       !day ||
-      !onePatientDuration
+      !onePatientDuration ||
+      !price
     ) {
       setError("All fields are required.");
       return;
@@ -115,6 +121,7 @@ const AvailabilityScheduler = () => {
           day,
           time,
           onePatientDuration: parseInt(onePatientDuration, 10), // Include new field
+          price: parseInt(price), // Include new field
         },
       });
       console.log("Mutation response:", data);
@@ -125,6 +132,7 @@ const AvailabilityScheduler = () => {
       setTotalPatients("");
       setDay("");
       setOnePatientDuration(""); // Reset the new field
+      setPrice(""); // Reset the new field
     } catch (error) {
       console.error("Error adding schedule:", error);
       setError("Failed to add schedule. Please try again.");
@@ -209,6 +217,13 @@ const AvailabilityScheduler = () => {
             <option value="50">50 minutes</option>
             <option value="60">60 minutes</option>
           </select>
+          <input
+            type="number"
+            placeholder="Price"
+            className={styles.input}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.button}>
             Submit
@@ -238,6 +253,9 @@ const AvailabilityScheduler = () => {
                 <p>
                   <strong>One Patient Duration:</strong>{" "}
                   {data.one_patient_duration} minutes
+                </p>
+                <p>
+                  <strong>Price:</strong> Rs.{data.price}
                 </p>
                 <button
                   className={styles.deleteButton}
