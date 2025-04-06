@@ -1,19 +1,33 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./Navbar.module.css";
 import { Hospital, User, Menu, X } from "lucide-react";
 
 const Navbar = () => {
-  const { currentUser, logout, register } = useAuth() || {}; // Add fallback to prevent destructuring undefined
+  const [userRole, setUserRole] = useState(null); // Track the logged-in role
   const navigate = useNavigate();
+  const location = useLocation(); // Track navigation events
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const fetchUserRole = () => {
+    const patientId = localStorage.getItem("patientId");
+    const doctorId = localStorage.getItem("doctorId");
+    const adminId = localStorage.getItem("adminId");
+
+    if (patientId) setUserRole("patient");
+    else if (doctorId) setUserRole("doctor");
+    else if (adminId) setUserRole("admin");
+    else setUserRole(null);
+  };
+
+  useEffect(() => {
+    fetchUserRole(); // Fetch user role on component mount or navigation
+  }, [location]);
+
   const handleLogout = () => {
-    if (logout) {
-      logout();
-      navigate("/login");
-    }
+    localStorage.clear(); // Clear all local storage
+    setUserRole(null); // Reset user role
+    navigate("/login");
   };
 
   const toggleMobileMenu = () => {
@@ -24,7 +38,7 @@ const Navbar = () => {
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
         <Link
-          to={currentUser ? "/dashboard" : "/"}
+          to={userRole ? `/${userRole}` : "/"}
           className={styles.logoContainer}
         >
           <Hospital className={styles.logoIcon} />
@@ -40,32 +54,11 @@ const Navbar = () => {
             mobileMenuOpen ? styles.mobileActive : ""
           }`}
         >
-          {currentUser ? (
+          {userRole ? (
             <>
-              {currentUser.role === "patient" && (
-                <>
-                  <Link to="/patient" className={styles.navLink}>
-                    Dashboard
-                  </Link>
-                  <Link to="/" className={styles.navLink}>
-                    Find Doctor
-                  </Link>
-                </>
-              )}
-              {currentUser.role === "doctor" && (
-                <Link to="/doctor" className={styles.navLink}>
-                  Dashboard
-                </Link>
-              )}
-              {currentUser.role === "admin" && (
-                <Link to="/admin" className={styles.navLink}>
-                  Dashboard
-                </Link>
-              )}
-              <div className={styles.userInfo}>
-                <User className={styles.userIcon} />
-                <span>{currentUser.name}</span>
-              </div>
+              <Link to={`/${userRole}`} className={styles.navLink}>
+                Dashboard
+              </Link>
               <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout
               </button>
@@ -75,11 +68,9 @@ const Navbar = () => {
               <Link to="/login" className={styles.navLink}>
                 Login
               </Link>
-              {register && (
-                <Link to="/register" className={styles.navLink}>
-                  Register
-                </Link>
-              )}
+              <Link to="/register" className={styles.navLink}>
+                Register
+              </Link>
             </>
           )}
         </div>

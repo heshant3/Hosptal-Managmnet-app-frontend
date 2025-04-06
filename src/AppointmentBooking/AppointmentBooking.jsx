@@ -193,7 +193,6 @@ const AppointmentBooking = () => {
       alert(
         data.addAppointment.message || "Appointment requested successfully."
       );
-      navigate("/patient");
     } catch (error) {
       console.error("Error adding appointment:", error);
       if (error.networkError) {
@@ -327,7 +326,7 @@ const AppointmentBooking = () => {
               )}
             </div>
 
-            <div className={styles.formSection}>
+            {/* <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
                 <Clock className={styles.sectionIcon} />
                 Your Start Time
@@ -340,12 +339,12 @@ const AppointmentBooking = () => {
               ) : (
                 <p>Please select a hospital to view your start time.</p>
               )}
-            </div>
+            </div> */}
 
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
                 <Clock className={styles.sectionIcon} />
-                Available Appointments
+                Total Appointments
               </h3>
               {selectedHospital ? (
                 <p>{selectedHospital.total_patients}</p>
