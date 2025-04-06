@@ -1,66 +1,52 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQuery, gql } from "@apollo/client";
 import styles from "../components/Dashboard.module.css";
 import { Calendar, Users, Clock, CalendarCheck, Star } from "lucide-react";
 import DetailsDialog from "../components/DetailsDialog";
 
+const GET_APPOINTMENTS_BY_DOCTOR_ID = gql`
+  query GetAppointmentsByDoctorId($docId: Int!) {
+    getAppointmentsByDoctorId(doc_id: $docId) {
+      id
+      appointment_number
+      patient_name
+      hospital_name
+      available_day
+      session_time
+      image_url
+      reason
+      yourTime
+    }
+  }
+`;
+
 const DoctorDashboard = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
+  const doctorId = parseInt(localStorage.getItem("doctorId"), 10);
+
+  const { data, loading, error, refetch } = useQuery(
+    GET_APPOINTMENTS_BY_DOCTOR_ID,
+    {
+      variables: { docId: doctorId },
+      skip: !doctorId,
+    }
+  );
+
   useEffect(() => {
-    // Mock fetching appointments
-    setTimeout(() => {
-      setAppointments([
-        {
-          id: 1,
-          patientName: "John Smith",
-          date: "2025-04-10",
-          time: "10:00 AM",
-          reason: "Regular checkup",
-          status: "confirmed",
-          patientAge: 42,
-          patientGender: "Male",
-          patientContact: "(555) 123-4567",
-          medicalHistory: "Hypertension, Type 2 Diabetes",
-          location: "Main Hospital, Room 305",
-          duration: "30 minutes",
-        },
-        {
-          id: 2,
-          patientName: "Emily Johnson",
-          date: "2025-04-10",
-          time: "11:30 AM",
-          reason: "Consultation",
-          status: "confirmed",
-          patientAge: 35,
-          patientGender: "Female",
-          patientContact: "(555) 987-6543",
-          medicalHistory: "Asthma",
-          location: "Main Hospital, Room 305",
-          duration: "45 minutes",
-        },
-        {
-          id: 3,
-          patientName: "Michael Brown",
-          date: "2025-04-11",
-          time: "9:15 AM",
-          reason: "Follow-up",
-          status: "pending",
-          patientAge: 28,
-          patientGender: "Male",
-          patientContact: "(555) 456-7890",
-          medicalHistory: "Recent knee surgery",
-          location: "Orthopedic Clinic, Suite 110",
-          duration: "30 minutes",
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    if (doctorId) {
+      refetch();
+    }
+  }, [doctorId, refetch]);
+
+  if (error) {
+    console.error("Error fetching appointments:", error);
+  }
+
+  const appointments = data?.getAppointmentsByDoctorId || [];
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -92,19 +78,11 @@ const DoctorDashboard = () => {
   };
 
   const handleApprove = (id) => {
-    setAppointments(
-      appointments.map((app) =>
-        app.id === id ? { ...app, status: "confirmed" } : app
-      )
-    );
+    console.log("Approve functionality not implemented");
   };
 
   const handleReject = (id) => {
-    setAppointments(
-      appointments.map((app) =>
-        app.id === id ? { ...app, status: "cancelled" } : app
-      )
-    );
+    console.log("Reject functionality not implemented");
   };
 
   const handleViewAppointment = (appointment) => {
@@ -134,7 +112,19 @@ const DoctorDashboard = () => {
             />
             <span className={styles.statCardTitle}>Today's Appointments</span>
           </div>
-          <div className={styles.statCardValue}>2</div>
+          <div className={styles.statCardValue}>
+            {
+              appointments.filter((app) => {
+                const appointmentDate = new Date(Number(app.available_day));
+                const today = new Date();
+                return (
+                  appointmentDate.getDate() === today.getDate() &&
+                  appointmentDate.getMonth() === today.getMonth() &&
+                  appointmentDate.getFullYear() === today.getFullYear()
+                );
+              }).length
+            }
+          </div>
         </div>
 
         <div className={styles.statCard}>
@@ -143,9 +133,9 @@ const DoctorDashboard = () => {
               className={styles.statCardIcon}
               style={{ backgroundColor: "#E8F5E9", color: "#2E7D32" }}
             />
-            <span className={styles.statCardTitle}>Total Patients</span>
+            <span className={styles.statCardTitle}>Total Appointments</span>
           </div>
-          <div className={styles.statCardValue}>124</div>
+          <div className={styles.statCardValue}>{appointments.length}</div>
         </div>
 
         <div className={styles.statCard}>
@@ -161,7 +151,7 @@ const DoctorDashboard = () => {
           </div>
         </div>
 
-        <div className={styles.statCard}>
+        {/* <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <Star
               className={styles.statCardIcon}
@@ -170,7 +160,7 @@ const DoctorDashboard = () => {
             <span className={styles.statCardTitle}>Rating</span>
           </div>
           <div className={styles.statCardValue}>4.8</div>
-        </div>
+        </div> */}
       </div>
 
       <div className={styles.actionsContainer}>
@@ -200,9 +190,10 @@ const DoctorDashboard = () => {
             <thead>
               <tr>
                 <th>Patient</th>
+                <th>Hospital</th>
                 <th>Date</th>
                 <th>Time</th>
-                <th>Purpose</th>
+                <th>patient Time</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -210,36 +201,25 @@ const DoctorDashboard = () => {
             <tbody>
               {appointments.map((appointment) => (
                 <tr key={appointment.id}>
-                  <td>{appointment.patientName}</td>
-                  <td>{new Date(appointment.date).toLocaleDateString()}</td>
-                  <td>{appointment.time}</td>
-                  <td>{appointment.reason}</td>
-                  <td>{getStatusBadge(appointment.status)}</td>
+                  <td>{appointment.patient_name}</td>
+                  <td>{appointment.hospital_name}</td>
                   <td>
-                    {appointment.status === "pending" ? (
-                      <>
-                        <button
-                          className={`${styles.button} ${styles.successButton}`}
-                          onClick={() => handleApprove(appointment.id)}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className={`${styles.button} ${styles.dangerButton}`}
-                          style={{ marginLeft: "8px" }}
-                          onClick={() => handleReject(appointment.id)}
-                        >
-                          Reject
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className={`${styles.button} ${styles.primaryButton}`}
-                        onClick={() => handleViewAppointment(appointment)}
-                      >
-                        View
-                      </button>
-                    )}
+                    {isNaN(Number(appointment.available_day))
+                      ? "Invalid Date"
+                      : new Date(
+                          Number(appointment.available_day)
+                        ).toLocaleDateString()}
+                  </td>
+                  <td>{appointment.session_time}</td>
+                  <td>{appointment.yourTime}</td>
+                  <td>{getStatusBadge("pending")}</td>
+                  <td>
+                    <button
+                      className={`${styles.button} ${styles.primaryButton}`}
+                      onClick={() => handleViewAppointment(appointment)}
+                    >
+                      View
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -255,26 +235,22 @@ const DoctorDashboard = () => {
           title="Appointment Details"
           description="Complete information about the patient appointment"
           details={[
-            { label: "Patient Name", value: selectedAppointment.patientName },
-            { label: "Age", value: selectedAppointment.patientAge },
-            { label: "Gender", value: selectedAppointment.patientGender },
-            { label: "Contact", value: selectedAppointment.patientContact },
+            { label: "Patient Name", value: selectedAppointment.patient_name },
+            {
+              label: "Hospital Name",
+              value: selectedAppointment.hospital_name,
+            },
             {
               label: "Date",
-              value: new Date(selectedAppointment.date).toLocaleDateString(),
+              value: isNaN(Number(selectedAppointment.available_day))
+                ? "Invalid Date"
+                : new Date(
+                    Number(selectedAppointment.available_day)
+                  ).toLocaleDateString(),
             },
-            { label: "Time", value: selectedAppointment.time },
-            { label: "Duration", value: selectedAppointment.duration },
-            { label: "Location", value: selectedAppointment.location },
-            { label: "Purpose", value: selectedAppointment.reason },
-            {
-              label: "Status",
-              value: getStatusBadge(selectedAppointment.status),
-            },
-            {
-              label: "Medical History",
-              value: selectedAppointment.medicalHistory,
-            },
+            { label: "Time", value: selectedAppointment.session_time },
+            { label: "Patient Time", value: selectedAppointment.yourTime },
+            { label: "Reason", value: selectedAppointment.reason },
           ]}
         />
       )}

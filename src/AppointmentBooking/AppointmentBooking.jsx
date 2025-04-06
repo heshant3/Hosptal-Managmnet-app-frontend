@@ -154,6 +154,10 @@ const AppointmentBooking = () => {
       return;
     }
 
+    const adjustedDate = selectedDate
+      ? new Date(selectedDate.getTime() + 1 * 24 * 60 * 60 * 1000) // Add 2 days
+      : null;
+
     const appointmentData = {
       doc_id: parseInt(doctorId),
       patient_id: patientId,
@@ -161,8 +165,8 @@ const AppointmentBooking = () => {
       doc_name: doctor.name,
       hospital_name: selectedHospital.hospital_name,
       doc_specialist: doctor.specialization || doctor.specialty,
-      available_day: selectedDate
-        ? selectedDate.toISOString().split("T")[0]
+      available_day: adjustedDate
+        ? adjustedDate.toISOString().split("T")[0] // Format as "YYYY-MM-DD"
         : "",
       session_time: selectedHospital.time,
       appointment_number: selectedHospital.total_patients,

@@ -3,73 +3,98 @@ import { Link } from "react-router-dom";
 import styles from "../components/Dashboard.module.css";
 import { Calendar, Users, Clock, Stethoscope, User } from "lucide-react";
 import DetailsDialog from "../components/DetailsDialog";
+import { useQuery, gql } from "@apollo/client";
+
+const GET_APPOINTMENTS_BY_PATIENT_ID = gql`
+  query GetAppointmentsByPatientId($patientId: Int!) {
+    getAppointmentsByPatientId(patient_id: $patientId) {
+      id
+      doc_name
+      hospital_name
+      available_day
+      session_time
+      reason
+      yourTime
+      doc_specialist
+      appointment_number
+    }
+  }
+`;
 
 const PatientDashboard = () => {
-  const currentUser = { name: "John Doe" }; // Mock user object
+  const currentUser = { name: "" }; // Mock user object
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    // Mock fetching appointments
-    setTimeout(() => {
-      setAppointments([]); // Empty appointments for testing
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const patientId = parseInt(localStorage.getItem("patientId"), 10);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "confirmed":
-        return (
-          <span className={`${styles.badge} ${styles.badgeGreen}`}>
-            Confirmed
-          </span>
-        );
-      case "pending":
-        return (
-          <span className={`${styles.badge} ${styles.badgeOrange}`}>
-            Pending
-          </span>
-        );
-      case "cancelled":
-        return (
-          <span className={`${styles.badge} ${styles.badgeRed}`}>
-            Cancelled
-          </span>
-        );
-      default:
-        return (
-          <span className={`${styles.badge} ${styles.badgeBlue}`}>
-            {status}
-          </span>
-        );
+  const { data, loading, error, refetch } = useQuery(
+    GET_APPOINTMENTS_BY_PATIENT_ID,
+    {
+      variables: { patientId },
+      skip: !patientId, // Skip query if patientId is not available
     }
-  };
+  );
+
+  useEffect(() => {
+    if (patientId) {
+      refetch(); // Refetch data when the page loads
+    }
+  }, [patientId, refetch]);
+
+  useEffect(() => {
+    if (data && data.getAppointmentsByPatientId) {
+      const fetchedAppointments = data.getAppointmentsByPatientId.map(
+        (appointment) => ({
+          id: appointment.id,
+          doctorName: appointment.doc_name,
+          specialty: appointment.doc_specialist,
+          date: new Date(parseInt(appointment.available_day, 10)), // Convert timestamp to Date
+          time: appointment.yourTime,
+          duration: "30 mins", // Placeholder duration
+          location: appointment.hospital_name, // Placeholder location
+          status: appointment.appointment_number, // Use appointment_number for status
+          notes: appointment.reason,
+          appointment_number: appointment.appointment_number,
+        })
+      );
+      setAppointments(fetchedAppointments);
+    }
+  }, [data]);
 
   const handleViewAppointment = (appointment) => {
+    console.log("Appointment ID:", appointment.id); // Log the appointment ID
     setSelectedAppointment(appointment);
     setIsDialogOpen(true);
   };
 
   const getAppointmentDetails = (appointment) => {
     return [
+      { label: "Appointment ID", value: appointment.id }, // New field for Appointment ID
       { label: "Doctor", value: appointment.doctorName },
       { label: "Specialty", value: appointment.specialty },
       { label: "Date", value: new Date(appointment.date).toLocaleDateString() },
       { label: "Time", value: appointment.time },
       { label: "Duration", value: appointment.duration },
       { label: "Location", value: appointment.location },
-      { label: "Status", value: getStatusBadge(appointment.status) },
       { label: "Notes", value: appointment.notes },
+      { label: "Appointment Number", value: appointment.appointment_number },
     ];
   };
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <p>Error fetching appointments: {error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.dashboardHeader}>
-        <h1 className={styles.dashboardTitle}>Welcome, {currentUser.name}</h1>
+        <h1 className={styles.dashboardTitle}>Welcome {currentUser.name}</h1>
         <p className={styles.dashboardSubtitle}>
           Manage your appointments and health information
         </p>
@@ -78,18 +103,18 @@ const PatientDashboard = () => {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
-            <Calendar
+            <Stethoscope
               className={styles.statCardIcon}
               style={{ backgroundColor: "#E3F2FD", color: "#1976D2" }}
             />
-            <span className={styles.statCardTitle}>Upcoming Appointments</span>
+            <span className={styles.statCardTitle}>Total Appointments</span>
           </div>
           <div className={styles.statCardValue}>
             {appointments.filter((app) => app.status !== "cancelled").length}
           </div>
         </div>
 
-        <div className={styles.statCard}>
+        {/* <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <Clock
               className={styles.statCardIcon}
@@ -100,9 +125,9 @@ const PatientDashboard = () => {
           <div className={styles.statCardValue}>
             {appointments.filter((app) => app.status === "pending").length}
           </div>
-        </div>
+        </div> */}
 
-        <div className={styles.statCard}>
+        {/* <div className={styles.statCard}>
           <div className={styles.statCardHeader}>
             <Stethoscope
               className={styles.statCardIcon}
@@ -111,7 +136,7 @@ const PatientDashboard = () => {
             <span className={styles.statCardTitle}>Completed Visits</span>
           </div>
           <div className={styles.statCardValue}>3</div>
-        </div>
+        </div> */}
       </div>
 
       <div className={styles.actionsContainer}>
@@ -121,11 +146,11 @@ const PatientDashboard = () => {
           <p className={styles.actionDesc}>Search for doctors by specialty</p>
         </Link>
 
-        <div className={styles.actionCard}>
+        {/* <div className={styles.actionCard}>
           <Calendar className={styles.actionIcon} />
           <h3 className={styles.actionTitle}>Book Appointment</h3>
           <p className={styles.actionDesc}>Schedule your next visit</p>
-        </div>
+        </div> */}
 
         <Link to="/patient/profile" className={styles.actionCard}>
           <User className={styles.actionIcon} />
@@ -134,7 +159,7 @@ const PatientDashboard = () => {
         </Link>
       </div>
 
-      <h2 className={styles.sectionTitle}>Your Appointments</h2>
+      <h2 className={styles.sectionTitle}>Total Appointments</h2>
 
       {loading ? (
         <div className={styles.loadingContainer}>
@@ -150,18 +175,18 @@ const PatientDashboard = () => {
                 <th>Specialty</th>
                 <th>Date</th>
                 <th>Time</th>
-                <th>Status</th>
+                <th>Ap.No.</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {appointments.map((appointment) => (
                 <tr key={appointment.id}>
-                  <td>{appointment.doctorName}</td>
+                  <td>Dr.{appointment.doctorName}</td>
                   <td>{appointment.specialty}</td>
                   <td>{new Date(appointment.date).toLocaleDateString()}</td>
                   <td>{appointment.time}</td>
-                  <td>{getStatusBadge(appointment.status)}</td>
+                  <td>{appointment.status}</td>
                   <td>
                     <button
                       variant="default"
