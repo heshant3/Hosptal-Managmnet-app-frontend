@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import styles from "./AppointmentBooking.module.css";
 import { Calendar, Clock, FileText, ArrowLeft, User } from "lucide-react";
 import DatePicker from "react-datepicker";
@@ -32,6 +32,40 @@ const GET_DOCTOR_DETAILS_BY_ID_FULL = gql`
   }
 `;
 
+const GET_PATIENT_DATA = gql`
+  query GetPatientData($patientId: Int!) {
+    getPatientDataById(patient_id: $patientId) {
+      id
+      name
+      address
+      dob
+      mobile_number
+      email
+    }
+  }
+`;
+
+const ADD_APPOINTMENT = gql`
+  mutation AddAppointment($input: AddAppointmentInput!) {
+    addAppointment(input: $input) {
+      appointment {
+        id
+        doc_name
+        hospital_name
+        doc_specialist
+        patient_name
+        patient_dob
+        patient_phone
+        available_day
+        session_time
+        schedule_id
+        yourTime
+      }
+      message
+    }
+  }
+`;
+
 const AppointmentBooking = () => {
   const { doctorId } = useParams();
   const location = useLocation();
@@ -57,7 +91,18 @@ const AppointmentBooking = () => {
     skip: false,
   });
 
-  console.log("Full Data Response:", fullData);
+  const patientId = parseInt(localStorage.getItem("patientId"));
+
+  const {
+    data: patientData,
+    loading: patientLoading,
+    error: patientError,
+  } = useQuery(GET_PATIENT_DATA, {
+    variables: { patientId },
+    skip: !patientId,
+  });
+
+  const [addAppointment] = useMutation(ADD_APPOINTMENT);
 
   const doctorDetails =
     fullData?.getDocScheduleByDoctorId?.[0] || data?.getDoctorBasicInfoById;
@@ -81,6 +126,7 @@ const AppointmentBooking = () => {
   }
 
   const handleDateSelect = (date) => {
+    console.log("Selected Date:", date); // Log the selected date
     setSelectedDate(date);
     setSelectedTime("");
   };
@@ -95,20 +141,61 @@ const AppointmentBooking = () => {
     setSelectedTime(time);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedDate || !selectedTime) {
-      alert("Please select both date and time");
+
+    if (!patientId) {
+      alert("Please log in to book an appointment.");
       return;
     }
-    console.log("Booking appointment with:", {
-      doctorId,
-      date: selectedDate,
-      time: selectedTime,
-      reason,
-    });
-    alert("Appointment requested. Waiting for doctor approval.");
-    navigate("/patient");
+
+    if (!selectedHospital) {
+      alert("Please select a hospital first.");
+      return;
+    }
+
+    const appointmentData = {
+      doc_id: parseInt(doctorId),
+      patient_id: patientId,
+      schedule_id: parseInt(selectedHospital.id), // Ensure schedule_id is an integer
+      doc_name: doctor.name,
+      hospital_name: selectedHospital.hospital_name,
+      doc_specialist: doctor.specialization || doctor.specialty,
+      available_day: selectedDate
+        ? selectedDate.toISOString().split("T")[0]
+        : "",
+      session_time: selectedHospital.time,
+      appointment_number: selectedHospital.total_patients,
+      reason: reason || "",
+      patient_name: patientData?.getPatientDataById?.name || "",
+      patient_dob: patientData?.getPatientDataById?.dob || "",
+      patient_phone: patientData?.getPatientDataById?.mobile_number || "",
+      yourTime: selectedHospital.YourTime || "",
+    };
+
+    console.log("Appointment Data Sent to Server:", appointmentData);
+
+    try {
+      const { data } = await addAppointment({
+        variables: { input: appointmentData },
+      });
+      console.log("Appointment Response:", data);
+      alert(
+        data.addAppointment.message || "Appointment requested successfully."
+      );
+      navigate("/patient");
+    } catch (error) {
+      console.error("Error adding appointment:", error);
+      if (error.networkError) {
+        console.error("Network Error Details:", error.networkError.result);
+      }
+      if (error.graphQLErrors) {
+        console.error("GraphQL Error Details:", error.graphQLErrors);
+      }
+      alert(
+        "Failed to request appointment. Please check your input and try again."
+      );
+    }
   };
 
   const getDayIndex = (day) => {
@@ -181,12 +268,6 @@ const AppointmentBooking = () => {
                     </p>
                     <p className={styles.hospitalDay}>{hospital.day}</p>
                   </div>
-                  {/* <p>Total Patients: {hospital.total_patients}</p> */}
-                  {/* <p>Available Day: {hospital.day}</p>
-                  <p>Available Time: {hospital.time}</p>
-                  <p>
-                    Duration per Patient: {hospital.onePatientDuration} mins
-                  </p> */}
                 </div>
               ))}
             </div>
@@ -225,6 +306,7 @@ const AppointmentBooking = () => {
                       className={`${styles.timeSlot} ${
                         selectedTime === time ? styles.selected : ""
                       }`}
+                      onClick={() => handleTimeSelect(time)} // Add this onClick handler
                     >
                       {time}
                     </span>
@@ -287,7 +369,6 @@ const AppointmentBooking = () => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
-                    console.log("Uploaded file:", file);
                     alert(`File "${file.name}" uploaded successfully.`);
                   }
                 }}
