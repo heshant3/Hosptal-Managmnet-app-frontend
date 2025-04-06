@@ -4,6 +4,7 @@ import styles from "../components/Dashboard.module.css";
 import { Calendar, Users, Clock, Stethoscope, User } from "lucide-react";
 import DetailsDialog from "../components/DetailsDialog";
 import { useQuery, gql } from "@apollo/client";
+import Chat from "../AIChat/Chat"; // Import AIChat component
 
 const GET_APPOINTMENTS_BY_PATIENT_ID = gql`
   query GetAppointmentsByPatientId($patientId: Int!) {
@@ -93,6 +94,7 @@ const PatientDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      <Chat />
       <div className={styles.dashboardHeader}>
         <h1 className={styles.dashboardTitle}>Welcome {currentUser.name}</h1>
         <p className={styles.dashboardSubtitle}>

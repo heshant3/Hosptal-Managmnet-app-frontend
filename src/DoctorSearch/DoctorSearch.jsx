@@ -135,14 +135,14 @@ const DoctorSearch = () => {
                 <h3 className={styles.doctorName}>{doctor.name}</h3>
                 <p className={styles.doctorSpecialty}>{doctor.specialty}</p>
 
-                <div className={styles.doctorMeta}>
+                {/* <div className={styles.doctorMeta}>
                   <div className={styles.doctorRating}>
                     <Star className={styles.metaIcon} />
                     <span>
                       {doctor.rating} ({doctor.reviews} reviews)
                     </span>
                   </div>
-                </div>
+                </div> */}
 
                 <Link
                   to={`/appointment-booking/${doctor.id}`}

@@ -150,23 +150,6 @@ const Login = () => {
             </button>
           </div>
         </form>
-
-        <div className={styles.authFooter}>
-          <p>
-            Don't have an account?{" "}
-            <Link to="/register" className={styles.authLink}>
-              Register
-            </Link>
-          </p>
-          {role === "patient" && ( // Show cheat credentials only for patients
-            <div className={styles.testCredentials}>
-              <p>Demo Login Credentials:</p>
-              <div>Admin: admin@example.com (any password)</div>
-              <div>Doctor: doctor@example.com (any password)</div>
-              <div>Patient: any email (any password)</div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
