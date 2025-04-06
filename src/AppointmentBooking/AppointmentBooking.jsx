@@ -178,6 +178,16 @@ const AppointmentBooking = () => {
     try {
       const { data } = await addAppointment({
         variables: { input: appointmentData },
+        refetchQueries: [
+          {
+            query: GET_DOCTOR_DETAILS_BY_ID_FULL,
+            variables: { doctor_id: parseInt(doctorId) },
+          },
+          {
+            query: GET_PATIENT_DATA,
+            variables: { patientId },
+          },
+        ],
       });
       console.log("Appointment Response:", data);
       alert(
