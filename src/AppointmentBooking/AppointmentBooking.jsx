@@ -7,9 +7,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabaseConfig";
+import Modal from "react-modal"; // Import Modal component
 
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+Modal.setAppElement("#root"); // Set the app element for accessibility
 
 const GET_DOCTOR_DETAILS_BY_ID = gql`
   query GetDoctorInfo($doctor_id: Int!) {
@@ -85,6 +88,104 @@ const AppointmentBooking = () => {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [imageUrl, setImageUrl] = useState(""); // Add state for image URL
   const fileInputRef = useRef(null); // Add a ref for the file input
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
+
+  const handleCardInputChange = (e) => {
+    const { name, value } = e.target;
+    setCardDetails((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePayAndSubmit = async () => {
+    // Validate card details
+    if (
+      !cardDetails.cardNumber ||
+      !cardDetails.expiryDate ||
+      !cardDetails.cvv
+    ) {
+      alert("Please fill in all card details.");
+      return;
+    }
+
+    // Close the modal
+    setIsModalOpen(false);
+
+    // Prepare appointment data
+    const adjustedDate = selectedDate
+      ? new Date(selectedDate.getTime() + 1 * 24 * 60 * 60 * 1000) // Add 1 day
+      : null;
+
+    const appointmentData = {
+      doc_id: parseInt(doctorId),
+      patient_id: patientId,
+      schedule_id: parseInt(selectedHospital.id), // Ensure schedule_id is an integer
+      doc_name: doctor.name,
+      hospital_name: selectedHospital.hospital_name,
+      doc_specialist: doctor.specialization || doctor.specialty,
+      available_day: adjustedDate
+        ? adjustedDate.toISOString().split("T")[0] // Format as "YYYY-MM-DD"
+        : "",
+      session_time: selectedHospital.time,
+      appointment_number: selectedHospital.total_patients,
+      reason: reason || "",
+      patient_name: patientData?.getPatientDataById?.name || "",
+      patient_dob: patientData?.getPatientDataById?.dob || "",
+      patient_phone: patientData?.getPatientDataById?.mobile_number || "",
+      yourTime: selectedHospital.YourTime || "",
+      price: selectedHospital.price || 0,
+      image_url: imageUrl || "", // Include the uploaded image URL
+      patient_email: patientData?.getPatientDataById?.email || "",
+    };
+
+    console.log("Appointment Data Sent to Server:", appointmentData);
+
+    try {
+      const { data } = await addAppointment({
+        variables: { input: appointmentData },
+        refetchQueries: [
+          {
+            query: GET_DOCTOR_DETAILS_BY_ID_FULL,
+            variables: { doctor_id: parseInt(doctorId) },
+          },
+          {
+            query: GET_PATIENT_DATA,
+            variables: { patientId },
+          },
+        ],
+      });
+      console.log("Appointment Response:", data);
+      alert(
+        data.addAppointment.message || "Appointment requested successfully."
+      );
+
+      // Reset all state variables
+      setSelectedDate("");
+      setSelectedTime("");
+      setReason("");
+      setSelectedHospital(null);
+      setImageUrl("");
+
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error adding appointment:", error);
+      if (error.networkError) {
+        console.error("Network Error Details:", error.networkError.result);
+      }
+      if (error.graphQLErrors) {
+        console.error("GraphQL Error Details:", error.graphQLErrors);
+      }
+      alert(
+        "Failed to request appointment. Please check your input and try again."
+      );
+    }
+  };
 
   const passedDoctorData = location.state?.doctor;
 
@@ -187,7 +288,7 @@ const AppointmentBooking = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     if (!patientId) {
       alert("Please log in to book an appointment.");
@@ -199,112 +300,8 @@ const AppointmentBooking = () => {
       return;
     }
 
-    let finalImageUrl = imageUrl; // Use the existing image URL if already uploaded
-
-    // Wait for image upload if not already uploaded
-    if (!finalImageUrl && fileInputRef.current?.files[0]) {
-      const file = fileInputRef.current.files[0];
-      try {
-        const fileName = `${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage
-          .from("image") // Bucket name
-          .upload(fileName, file);
-
-        if (error) {
-          console.error("Error uploading file:", error);
-          alert("Failed to upload file. Please try again.");
-          return;
-        }
-
-        const { data: publicUrlData } = supabase.storage
-          .from("image")
-          .getPublicUrl(data.path);
-
-        if (publicUrlData) {
-          finalImageUrl = publicUrlData.publicUrl; // Set the final image URL
-          console.log("Uploaded File URL:", finalImageUrl);
-        } else {
-          console.error("Failed to generate public URL.");
-          alert("File uploaded, but public URL could not be generated.");
-          return;
-        }
-      } catch (err) {
-        console.error("Unexpected error during file upload:", err);
-        alert("An unexpected error occurred. Please try again.");
-        return;
-      }
-    }
-
-    const adjustedDate = selectedDate
-      ? new Date(selectedDate.getTime() + 1 * 24 * 60 * 60 * 1000) // Add 2 days
-      : null;
-
-    const appointmentData = {
-      doc_id: parseInt(doctorId),
-      patient_id: patientId,
-      schedule_id: parseInt(selectedHospital.id), // Ensure schedule_id is an integer
-      doc_name: doctor.name,
-      hospital_name: selectedHospital.hospital_name,
-      doc_specialist: doctor.specialization || doctor.specialty,
-      available_day: adjustedDate
-        ? adjustedDate.toISOString().split("T")[0] // Format as "YYYY-MM-DD"
-        : "",
-      session_time: selectedHospital.time,
-      appointment_number: selectedHospital.total_patients,
-      reason: reason || "",
-      patient_name: patientData?.getPatientDataById?.name || "",
-      patient_dob: patientData?.getPatientDataById?.dob || "",
-      patient_phone: patientData?.getPatientDataById?.mobile_number || "",
-      yourTime: selectedHospital.YourTime || "",
-      price: selectedHospital.price || 0,
-      image_url: finalImageUrl || "", // Include the uploaded image URL
-      patient_email: patientData?.getPatientDataById?.email || "",
-    };
-
-    console.log("Appointment Data Sent to Server:", appointmentData);
-
-    try {
-      const { data } = await addAppointment({
-        variables: { input: appointmentData },
-        refetchQueries: [
-          {
-            query: GET_DOCTOR_DETAILS_BY_ID_FULL,
-            variables: { doctor_id: parseInt(doctorId) },
-          },
-          {
-            query: GET_PATIENT_DATA,
-            variables: { patientId },
-          },
-        ],
-      });
-      console.log("Appointment Response:", data);
-      alert(
-        data.addAppointment.message || "Appointment requested successfully."
-      );
-
-      // Reset all state variables
-      setSelectedDate("");
-      setSelectedTime("");
-      setReason("");
-      setSelectedHospital(null);
-      setImageUrl("");
-
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error("Error adding appointment:", error);
-      if (error.networkError) {
-        console.error("Network Error Details:", error.networkError.result);
-      }
-      if (error.graphQLErrors) {
-        console.error("GraphQL Error Details:", error.graphQLErrors);
-      }
-      alert(
-        "Failed to request appointment. Please check your input and try again."
-      );
-    }
+    // Open the card details modal
+    setIsModalOpen(true);
   };
 
   const getDayIndex = (day) => {
@@ -485,12 +482,65 @@ const AppointmentBooking = () => {
               type="submit"
               className={styles.bookedButton}
               disabled={!selectedDate || loading || fullLoading} // Disable if loading or no date selected
+              onClick={handleSubmit} // Show modal on submit
             >
               Request Appointment
             </button>
           </form>
         </div>
       </div>
+
+      {/* Card Details Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        className={styles.modal}
+        overlayClassName={styles.modalOverlay}
+      >
+        <h2>Enter Card Details</h2>
+        <form>
+          <div className={styles.formGroup}>
+            <label>Card Number</label>
+            <input
+              type="text"
+              name="cardNumber"
+              value={cardDetails.cardNumber}
+              onChange={handleCardInputChange}
+              placeholder="Enter card number"
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label>Expiry Date</label>
+            <input
+              type="text"
+              name="expiryDate"
+              value={cardDetails.expiryDate}
+              onChange={handleCardInputChange}
+              placeholder="MM/YY"
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label>CVV</label>
+            <input
+              type="password"
+              name="cvv"
+              value={cardDetails.cvv}
+              onChange={handleCardInputChange}
+              placeholder="Enter CVV"
+              className={styles.input}
+            />
+          </div>
+          <button
+            type="button"
+            className={styles.bookedButton}
+            onClick={handlePayAndSubmit}
+          >
+            Pay and Submit
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };
