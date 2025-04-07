@@ -68,6 +68,7 @@ const ADD_APPOINTMENT = gql`
         yourTime
         image_url
         price
+        patient_email
       }
       message
     }
@@ -257,6 +258,7 @@ const AppointmentBooking = () => {
       yourTime: selectedHospital.YourTime || "",
       price: selectedHospital.price || 0,
       image_url: finalImageUrl || "", // Include the uploaded image URL
+      patient_email: patientData?.getPatientDataById?.email || "",
     };
 
     console.log("Appointment Data Sent to Server:", appointmentData);
