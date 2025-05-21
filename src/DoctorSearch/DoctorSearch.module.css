@@ -1,38 +1,44 @@
 .searchContainer {
-  padding: 24px;
+  padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
 .searchHeader {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  padding: 20px 0;
 }
 
 .searchTitle {
-  font-size: 32px;
-  color: #333;
-  margin-bottom: 8px;
-  font-weight: 600;
+  font-size: 36px;
+  color: #1e293b;
+  margin-bottom: 12px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .searchSubtitle {
-  color: #666;
-  font-size: 16px;
+  color: #64748b;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .searchForm {
-  margin-bottom: 40px;
+  margin-bottom: 48px;
   background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
 }
 
 .searchInputGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
 .searchInput {
@@ -46,23 +52,26 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: #94a3b8;
   width: 20px;
   height: 20px;
 }
 
 .searchInput input {
-  width: 100%;
-  padding: 14px 14px 14px 48px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  width: 80%;
+  padding: 16px 16px 16px 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
 }
 
 .searchInput input:focus {
   outline: none;
-  border-color: #1976d2;
+  border-color: #3b82f6;
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .filterInput {
@@ -76,90 +85,98 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: #94a3b8;
   width: 20px;
   height: 20px;
 }
 
 .filterInput select {
   width: 100%;
-  padding: 14px 14px 14px 48px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 16px 16px 16px 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
-  background-color: white;
+  background-color: #f8fafc;
 }
 
 .filterInput select:focus {
   outline: none;
-  border-color: #1976d2;
+  border-color: #3b82f6;
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .searchButton {
-  padding: 14px 24px;
-  background-color: #1976d2;
+  padding: 16px 32px;
+  background-color: #3b82f6;
   color: white;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
-  min-width: 120px;
+  transition: all 0.3s ease;
+  min-width: 140px;
+  border: none;
 }
 
 .searchButton:hover {
-  background-color: #1565c0;
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .resultsContainer {
-  margin-top: 20px;
+  margin-top: 32px;
 }
 
 .resultsTitle {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 24px;
+  color: #1e293b;
 }
 
 .doctorsList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
 }
 
 .doctorCard {
   background-color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   display: flex;
-  padding: 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
+  padding: 24px;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
 }
 
 .doctorCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  border-color: #3b82f6;
 }
 
 .doctorAvatar {
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #e3f2fd;
+  background-color: #eff6ff;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 16px;
+  margin-right: 20px;
   flex-shrink: 0;
+  border: 2px solid #e2e8f0;
 }
 
 .doctorAvatar img {
@@ -169,9 +186,9 @@
 }
 
 .avatarPlaceholder {
-  width: 40px;
-  height: 40px;
-  color: #1976d2;
+  width: 44px;
+  height: 44px;
+  color: #3b82f6;
 }
 
 .doctorInfo {
@@ -179,23 +196,24 @@
 }
 
 .doctorName {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
+  color: #1e293b;
+  margin-bottom: 6px;
 }
 
 .doctorSpecialty {
-  color: #1976d2;
+  color: #3b82f6;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
 }
 
 .doctorMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .doctorLocation,
@@ -203,34 +221,33 @@
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #666;
+  color: #64748b;
 }
 
 .metaIcon {
   width: 16px;
   height: 16px;
-  margin-right: 6px;
-}
-
-.availabilityText {
-  font-size: 14px;
-  color: #43a047;
-  margin-bottom: 16px;
+  margin-right: 8px;
 }
 
 .bookButton {
   display: inline-block;
-  padding: 10px 16px;
-  background-color: #1976d2;
+  padding: 12px 20px;
+  background-color: #3b82f6;
   color: white;
-  border-radius: 6px;
+  border-radius: 10px;
   font-weight: 500;
-  font-size: 14px;
-  transition: background-color 0.3s;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
 }
 
 .bookButton:hover {
-  background-color: #1565c0;
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .scheduleInfo {
@@ -256,6 +273,10 @@
 }
 
 @media (max-width: 768px) {
+  .searchContainer {
+    padding: 20px;
+  }
+
   .doctorsList {
     grid-template-columns: 1fr;
   }
@@ -268,4 +289,56 @@
   .filterInput {
     width: 100%;
   }
+
+  .searchButton {
+    width: 100%;
+  }
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 24px;
+  color: #dc2626;
+  font-size: 16px;
+  text-align: center;
+}
+
+.doctorAvailability {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #64748b;
 }

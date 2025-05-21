@@ -4,6 +4,7 @@ import { useQuery, gql } from "@apollo/client";
 import styles from "../components/Dashboard.module.css";
 import { Calendar, Users, Clock, CalendarCheck, Star } from "lucide-react";
 import DetailsDialog from "../components/DetailsDialog";
+import { Toaster, toast } from "sonner";
 
 const GET_APPOINTMENTS_BY_DOCTOR_ID = gql`
   query GetAppointmentsByDoctorId($docId: Int!) {
@@ -96,8 +97,17 @@ const DoctorDashboard = () => {
     navigate("/doctor/availability");
   };
 
+  const handleError = (message) => {
+    toast.error(message);
+  };
+
+  const handleSuccess = (message) => {
+    toast.success(message);
+  };
+
   return (
     <div className={styles.dashboardContainer}>
+      <Toaster position="top-right" />
       <div className={styles.dashboardHeader}>
         <h1 className={styles.dashboardTitle}>Welcome</h1>
         <p className={styles.dashboardSubtitle}>

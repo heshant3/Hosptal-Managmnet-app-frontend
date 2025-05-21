@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "./DoctorSearch.module.css";
-import { Search, Filter, MapPin, Star, User } from "lucide-react";
+import { Search, Filter, User } from "lucide-react";
 import { gql, useQuery } from "@apollo/client";
+import { Toaster, toast } from "sonner";
 
 const GET_ALL_DOCTORS = gql`
   query GetAllDoctors {
@@ -25,22 +26,29 @@ const DoctorSearch = () => {
     if (data && data.getAllDoctors) {
       setDoctors(
         data.getAllDoctors.map((doctor) => ({
-          id: doctor.doctor_id, // Use doctor_id as the unique identifier
+          id: doctor.doctor_id,
           name: doctor.name,
           specialty: doctor.specialization,
           qualifications: doctor.qualifications,
-          location: "Unknown",
-          rating: 4.5,
-          reviews: 0,
-          image: null,
-          availableDates: [],
         }))
       );
     }
   }, [data]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading doctors.</p>;
+  if (loading)
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading doctors...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className={styles.errorContainer}>
+        <p>Error loading doctors. Please try again later.</p>
+      </div>
+    );
 
   const specialties = [
     "All Specialties",
@@ -68,12 +76,21 @@ const DoctorSearch = () => {
     return matchesSearch && matchesSpecialty;
   });
 
+  const handleError = (message) => {
+    toast.error(message);
+  };
+
+  const handleSuccess = (message) => {
+    toast.success(message);
+  };
+
   return (
     <div className={styles.searchContainer}>
+      <Toaster position="top-right" />
       <div className={styles.searchHeader}>
-        <h1 className={styles.searchTitle}>Find the Right Doctor</h1>
+        <h1 className={styles.searchTitle}>Find Your Perfect Doctor</h1>
         <p className={styles.searchSubtitle}>
-          Search by name, specialty, or location
+          Search by name or specialty to find the right healthcare provider
         </p>
       </div>
 
@@ -84,7 +101,7 @@ const DoctorSearch = () => {
               <Search className={styles.searchIcon} />
               <input
                 type="text"
-                placeholder="Search doctors..."
+                placeholder="Search by doctor name or specialty..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -108,7 +125,7 @@ const DoctorSearch = () => {
             </div>
 
             <button type="submit" className={styles.searchButton}>
-              Search
+              Search Doctors
             </button>
           </div>
         </form>
@@ -124,29 +141,16 @@ const DoctorSearch = () => {
           {filteredDoctors.map((doctor) => (
             <div key={doctor.id} className={styles.doctorCard}>
               <div className={styles.doctorAvatar}>
-                {doctor.image ? (
-                  <img src={doctor.image} alt={doctor.name} />
-                ) : (
-                  <User className={styles.avatarPlaceholder} />
-                )}
+                <User className={styles.avatarPlaceholder} />
               </div>
 
               <div className={styles.doctorInfo}>
                 <h3 className={styles.doctorName}>{doctor.name}</h3>
                 <p className={styles.doctorSpecialty}>{doctor.specialty}</p>
 
-                {/* <div className={styles.doctorMeta}>
-                  <div className={styles.doctorRating}>
-                    <Star className={styles.metaIcon} />
-                    <span>
-                      {doctor.rating} ({doctor.reviews} reviews)
-                    </span>
-                  </div>
-                </div> */}
-
                 <Link
                   to={`/appointment-booking/${doctor.id}`}
-                  state={{ doctor }} // Pass doctor data as state
+                  state={{ doctor }}
                   className={styles.bookButton}
                 >
                   Book Appointment

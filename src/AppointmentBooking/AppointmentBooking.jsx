@@ -2,12 +2,20 @@ import { useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import styles from "./AppointmentBooking.module.css";
-import { Calendar, Clock, FileText, ArrowLeft, User } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  FileText,
+  ArrowLeft,
+  User,
+  CreditCard,
+} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/supabaseConfig";
 import Modal from "react-modal"; // Import Modal component
+import { Toaster, toast } from "sonner";
 
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -94,6 +102,7 @@ const AppointmentBooking = () => {
     expiryDate: "",
     cvv: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCardInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,10 +116,11 @@ const AppointmentBooking = () => {
       !cardDetails.expiryDate ||
       !cardDetails.cvv
     ) {
-      alert("Please fill in all card details.");
+      toast.error("Please fill in all card details.");
       return;
     }
 
+    setIsLoading(true);
     // Close the modal
     setIsModalOpen(false);
 
@@ -158,7 +168,7 @@ const AppointmentBooking = () => {
         ],
       });
       console.log("Appointment Response:", data);
-      alert(
+      toast.success(
         data.addAppointment.message || "Appointment requested successfully."
       );
 
@@ -181,9 +191,11 @@ const AppointmentBooking = () => {
       if (error.graphQLErrors) {
         console.error("GraphQL Error Details:", error.graphQLErrors);
       }
-      alert(
+      toast.error(
         "Failed to request appointment. Please check your input and try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -230,11 +242,19 @@ const AppointmentBooking = () => {
   }
 
   if (error || fullError) {
-    return <p>Error loading doctor details.</p>;
+    return (
+      <div className={styles.errorContainer}>
+        <p>Error loading doctor details. Please try again later.</p>
+      </div>
+    );
   }
 
   if (!doctor) {
-    return <p>No doctor data available.</p>;
+    return (
+      <div className={styles.errorContainer}>
+        <p>No doctor data available.</p>
+      </div>
+    );
   }
 
   const handleDateSelect = (date) => {
@@ -291,12 +311,12 @@ const AppointmentBooking = () => {
     if (e) e.preventDefault();
 
     if (!patientId) {
-      alert("Please log in to book an appointment.");
+      toast.error("Please log in to book an appointment.");
       return;
     }
 
     if (!selectedHospital) {
-      alert("Please select a hospital first.");
+      toast.error("Please select a hospital first.");
       return;
     }
 
@@ -325,6 +345,7 @@ const AppointmentBooking = () => {
 
   return (
     <div className={styles.bookingContainer}>
+      <Toaster position="top-right" />
       <button className={styles.backButton} onClick={() => navigate("/")}>
         <ArrowLeft />
         <span>Back to Search</span>
@@ -351,6 +372,7 @@ const AppointmentBooking = () => {
               </p>
             </div>
           </div>
+
           <div className={styles.doctorDetails}>
             <h2 className={styles.doctorName}>Select Hospital</h2>
             <div className={styles.hospitalCards}>
@@ -362,18 +384,11 @@ const AppointmentBooking = () => {
                   }`}
                   onClick={() => handleHospitalSelect(hospital)}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <p className={styles.hospitalName}>
-                      {hospital.hospital_name}
-                    </p>
-                    <p className={styles.hospitalDay}>{hospital.day}</p>
-                  </div>
+                  <p className={styles.hospitalName}>
+                    {hospital.hospital_name}
+                  </p>
+                  <p className={styles.hospitalDay}>{hospital.day}</p>
+                  <p className={styles.hospitalPrice}>Rs: {hospital.price}</p>
                 </div>
               ))}
             </div>
@@ -393,16 +408,17 @@ const AppointmentBooking = () => {
                 onChange={handleDateSelect}
                 className={styles.input}
                 placeholderText="Select a date"
-                minDate={new Date()} // Restrict to today or future dates
-                filterDate={isDateSelectable} // Allow only dates matching the hospital's available day
-                disabled={!selectedHospital} // Disable if no hospital is selected
+                minDate={new Date()}
+                filterDate={isDateSelectable}
+                disabled={!selectedHospital}
+                dateFormat="MMMM d, yyyy"
               />
             </div>
 
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
                 <Clock className={styles.sectionIcon} />
-                Session Start Time
+                Session Time
               </h3>
               {selectedHospital ? (
                 <div className={styles.timeSlots}>
@@ -412,7 +428,7 @@ const AppointmentBooking = () => {
                       className={`${styles.timeSlot} ${
                         selectedTime === time ? styles.selected : ""
                       }`}
-                      onClick={() => handleTimeSelect(time)} // Add this onClick handler
+                      onClick={() => handleTimeSelect(time)}
                     >
                       {time}
                     </span>
@@ -429,21 +445,27 @@ const AppointmentBooking = () => {
                 Total Appointments
               </h3>
               {selectedHospital ? (
-                <p>{selectedHospital.total_patients}</p>
+                <p className={styles.infoText}>
+                  {selectedHospital.total_patients}
+                </p>
               ) : (
-                <p>Please select a hospital to view total appointments.</p>
+                <p className={styles.infoText}>
+                  Please select a hospital to view total appointments.
+                </p>
               )}
             </div>
 
             <div className={styles.formSection}>
               <h3 className={styles.sectionTitle}>
-                <Clock className={styles.Price} />
+                <CreditCard className={styles.sectionIcon} />
                 Price
               </h3>
               {selectedHospital ? (
-                <p>{selectedHospital.price}</p>
+                <p className={styles.infoText}>Rs: {selectedHospital.price}</p>
               ) : (
-                <p>Please select a hospital to view the price.</p>
+                <p className={styles.infoText}>
+                  Please select a hospital to view the price.
+                </p>
               )}
             </div>
 
@@ -452,27 +474,27 @@ const AppointmentBooking = () => {
                 <FileText className={styles.sectionIcon} />
                 Reason for Visit
               </h3>
-
               <textarea
                 className={styles.reasonInput}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Briefly describe your reason for this appointment..."
                 rows={4}
-              ></textarea>
+              />
             </div>
+
             <div className={styles.formSection2}>
               <h3 className={styles.sectionTitle}>
                 <FileText className={styles.sectionIcon} />
-                Add Medical Records
+                Medical Records
               </h3>
               <input
                 type="file"
                 accept="image/*"
-                ref={fileInputRef} // Attach the ref to the file input
+                ref={fileInputRef}
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  handleFileUpload(file); // Call the upload function
+                  handleFileUpload(file);
                 }}
                 className={styles.uploadInput}
               />
@@ -481,23 +503,23 @@ const AppointmentBooking = () => {
             <button
               type="submit"
               className={styles.bookedButton}
-              disabled={!selectedDate || loading || fullLoading} // Disable if loading or no date selected
-              onClick={handleSubmit} // Show modal on submit
+              disabled={
+                !selectedDate || !selectedTime || !selectedHospital || isLoading
+              }
             >
-              Request Appointment
+              {isLoading ? "Requesting..." : "Request Appointment"}
             </button>
           </form>
         </div>
       </div>
 
-      {/* Card Details Modal */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
         className={styles.modal}
         overlayClassName={styles.modalOverlay}
       >
-        <h2>Enter Card Details</h2>
+        <h2 className={styles.modalTitle}>Enter Card Details</h2>
         <form>
           <div className={styles.formGroup}>
             <label>Card Number</label>
@@ -506,8 +528,9 @@ const AppointmentBooking = () => {
               name="cardNumber"
               value={cardDetails.cardNumber}
               onChange={handleCardInputChange}
-              placeholder="Enter card number"
+              placeholder="1234 5678 9012 3456"
               className={styles.input}
+              maxLength="19"
             />
           </div>
           <div className={styles.formGroup}>
@@ -519,6 +542,7 @@ const AppointmentBooking = () => {
               onChange={handleCardInputChange}
               placeholder="MM/YY"
               className={styles.input}
+              maxLength="5"
             />
           </div>
           <div className={styles.formGroup}>
@@ -528,16 +552,18 @@ const AppointmentBooking = () => {
               name="cvv"
               value={cardDetails.cvv}
               onChange={handleCardInputChange}
-              placeholder="Enter CVV"
+              placeholder="123"
               className={styles.input}
+              maxLength="3"
             />
           </div>
           <button
             type="button"
             className={styles.bookedButton}
             onClick={handlePayAndSubmit}
+            disabled={isLoading}
           >
-            Pay and Submit
+            {isLoading ? "Processing..." : "Pay and Submit"}
           </button>
         </form>
       </Modal>
