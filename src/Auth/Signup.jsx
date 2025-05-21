@@ -24,6 +24,15 @@ const ADD_DOCTOR_MUTATION = gql`
   }
 `;
 
+const ADD_ADMIN_MUTATION = gql`
+  mutation AddAdmin($email: String!, $password: String!) {
+    addAdmin(email: $email, password: $password) {
+      id
+      email
+    }
+  }
+`;
+
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +43,7 @@ const Register = () => {
 
   const [addPatient] = useMutation(ADD_PATIENT_MUTATION);
   const [addDoctor] = useMutation(ADD_DOCTOR_MUTATION);
+  const [addAdmin] = useMutation(ADD_ADMIN_MUTATION);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,8 +57,9 @@ const Register = () => {
       } else if (role === "doctor") {
         await addDoctor({ variables: { email, password } });
         navigate("/login");
-      } else {
-        throw new Error("Admin registration is not supported.");
+      } else if (role === "admin") {
+        await addAdmin({ variables: { email, password } });
+        navigate("/login");
       }
       setLoading(false);
     } catch (error) {
